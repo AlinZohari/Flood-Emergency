@@ -27,6 +27,11 @@ def user_input():
 
 
 def get_buffer(point):
+    """
+    Takes a point as an input and returns a 5km bufferzone around it
+    :param point: a Point Class object from Shapely Package
+    :return: buffer_zone (Polygon) and plots it
+    """
     buffer_zone = point.buffer(5000)  # Make a new function for this buffer task
     xp, yp = buffer_zone.exterior.xy
     plt.fill(xp, yp, 'bo')
@@ -34,27 +39,16 @@ def get_buffer(point):
 
 
 if __name__ == "__main__":
-    map = rasterio.open('D:/UCL/Geospatial Programming/Material/background/raster-50k_2724246.tif')
+    main_map = rasterio.open('D:/UCL/Geospatial Programming/Material/background/raster-50k_2724246.tif')
     dem = rasterio.open('D:/UCL/Geospatial Programming/Material/elevation/sz.asc')
 
     user_point = user_input()
     study_buffer = get_buffer(user_point)
-    print(study_buffer)
-    # study_buffer = study_buffer.to_crs({'init': 'epsg:27700'})
+    # print(study_buffer)
+
     study_image, study_transform = rasterio.mask.mask(dem, [study_buffer], crop=True, filled=True)
     print(rasterio.mask.mask(dem, [study_buffer], crop=True, filled=True))
-    """
-        Masked Method: Not Successful
-    study_meta = dem.meta
-    study_meta.update({"driver": "GTiff",
-                      "height": study_image.shape[1],
-                       "width:": study_image.shape[2],
-                       "transform": study_transform})
 
-    # rasterio.plot.show(dem)
-    with open("D:/UCL/Geospatial Programming/RGB.byte.masked.tif", 'w', **study_meta) as dest:
-        dest.write(study_image)
-    """
     rasterio.plot.show(study_image, transform=study_transform)
     rasterio.plot.show(map)
 
