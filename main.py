@@ -4,6 +4,7 @@ import pandas as pd
 import rasterio
 import rasterio.mask
 import rasterio.windows
+from rasterio import features
 from rasterio import plot
 from shapely.geometry import Point, LineString, Polygon
 import matplotlib.pyplot as plt
@@ -38,18 +39,21 @@ def get_buffer(point):
     return buffer_zone
 
 
-
-
 if __name__ == "__main__":
-    map = rasterio.open('/Users/apple/Desktop/0096/second assignment/Material/background/raster-50k_2724246.tif')
-    dem = rasterio.open('/Users/apple/Desktop/0096/second assignment/Material/elevation/sz.asc')
-    print(dem)
+    main_map = rasterio.open('D:/UCL/Geospatial Programming/Material/background/raster-50k_2724246.tif')
+    dem = rasterio.open('D:/UCL/Geospatial Programming/Material/elevation/sz.asc')
+    print(dem.bounds)
 
     user_point = user_input()
     study_buffer = get_buffer(user_point)
     # print(study_buffer)
 
-    study_image= rasterio.mask.mask(dem, [study_buffer], crop=True, filled=True)
-    rasterio.plot.show(map, extent=study_image) # overlap the buffer and the map together
+    study_image = rasterio.mask.mask(dem, [study_buffer], crop=True, filled=True)    #Main Study Area
+    print(study_image)
+    max_elev = numpy.max(study_image[0])
+    print(max_elev)
 
+    rasterio.plot.show(study_image[0], transform=study_image[1])
+    rasterio.plot.show(main_map, extent=study_buffer)              # overlap the buffer and the map together
+                                                                   # It's not working now but it's intentional
     plt.show()
