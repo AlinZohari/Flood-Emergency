@@ -50,9 +50,28 @@ if __name__ == "__main__":
 
     study_image = rasterio.mask.mask(dem, [study_buffer], crop=True, filled=True)    #Main Study Area
     print(study_image)
+    print(study_buffer.bounds)
+
+    # res = numpy.where(study_image[0] == study_image[0].max())
+    # highest = study_image.xy(res[0], res[1])
+    # x = highest[0][0]
+    # y = highest[1][0]
+    # print(x, y)
+
+    indices = numpy.where(study_image[0] == study_image[0].max())
+    print(indices)
+    print(indices[1][0])
+    print(indices[2][0])
+
+    x = 439440.0 + indices[1][0] * 5
+    y = 85000.0 + indices[2][0] * 5
+
+    print(x, y)
+
+
     max_elev = numpy.max(study_image[0])
     print(max_elev)
-
+    plt.plot(x,y, 'ro')
     rasterio.plot.show(study_image[0], transform=study_image[1])
     rasterio.plot.show(main_map, extent=study_buffer)              # overlap the buffer and the map together
                                                                    # It's not working now but it's intentional
