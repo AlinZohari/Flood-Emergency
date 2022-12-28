@@ -39,6 +39,25 @@ def get_buffer(point):
     return buffer_zone
 
 
+def get_highest_point(buffer_study_area):
+    """
+    Gets the buffer area around the user's point and plots and returns the highest elevation point in that area.
+    :param buffer_study_area: a buffer raster
+    :return: Point of highest elevation
+    """
+    study_area = rasterio.mask.mask(dem, [buffer_study_area], crop=True, filled=True)  # Main Study Area
+
+    indices_x_y = numpy.where(study_area[0] == study_area[0].max())          # returns 3 arrays with 1 element each
+    # x = indices_x_y[2][0] i.e. x position in the array
+    # y = indices_x_y[1][0] i.e y position in the array
+    x_max_elev = buffer_study_area.bounds[0] + indices_x_y[2][0] * 5
+    y_max_elev = buffer_study_area.bounds[3] - indices_x_y[1][0] * 5
+    print(numpy.max(study_area[0]))
+    plt.plot(x_max_elev, y_max_elev, 'ro')
+    rasterio.plot.show(study_area[0], transform=study_area[1])
+    return Point([x_max_elev, y_max_elev])
+
+
 if __name__ == "__main__":
     main_map = rasterio.open('D:/UCL/Geospatial Programming/Material/background/raster-50k_2724246.tif')
     dem = rasterio.open('D:/UCL/Geospatial Programming/Material/elevation/sz.asc')
@@ -46,33 +65,31 @@ if __name__ == "__main__":
 
     user_point = user_input()
     study_buffer = get_buffer(user_point)
-    # print(study_buffer)
 
-    study_image = rasterio.mask.mask(dem, [study_buffer], crop=True, filled=True)    #Main Study Area
-    print(study_image)
-    print(study_buffer.bounds)
+    # Task 2: Returns the point of highest elevation
+    highest_elev = get_highest_point(study_buffer)
+    print(highest_elev)
 
-    # res = numpy.where(study_image[0] == study_image[0].max())
-    # highest = study_image.xy(res[0], res[1])
-    # x = highest[0][0]
-    # y = highest[1][0]
+    # study_image = rasterio.mask.mask(dem, [study_buffer], crop=True, filled=True)    #Main Study Area
+    # print(study_image)
+    # print(study_buffer.bounds[0], study_buffer.bounds[3])
+    #
+    # indices = numpy.where(study_image[0] == study_image[0].max())
+    # print(indices)
+    # print(indices[2][0])
+    # print(indices[1][0])
+    # print(study_image[1].bounds)
+    #
+    # x = study_buffer.bounds[0] + indices[2][0] * 5
+    # y = study_buffer.bounds[3] - indices[1][0] * 5
+    #
     # print(x, y)
-
-    indices = numpy.where(study_image[0] == study_image[0].max())
-    print(indices)
-    print(indices[1][0])
-    print(indices[2][0])
-
-    x = 439440.0 + indices[1][0] * 5
-    y = 85000.0 + indices[2][0] * 5
-
-    print(x, y)
-
-
-    max_elev = numpy.max(study_image[0])
-    print(max_elev)
-    plt.plot(x,y, 'ro')
-    rasterio.plot.show(study_image[0], transform=study_image[1])
+    #
+    # max_elev = numpy.max(study_image[0])
+    # print(max_elev)
+    # plt.plot(x,y, 'ro')
+    #
+    # rasterio.plot.show(study_image[0], transform=study_image[1])
     rasterio.plot.show(main_map, extent=study_buffer)              # overlap the buffer and the map together
                                                                    # It's not working now but it's intentional
     plt.show()
