@@ -151,7 +151,7 @@ if __name__ == "__main__":
 
     # print(road_links_inside_buffer)
     for link in road_links_inside_buffer:
-        itn_nodes.add_edge(road_links_inside_buffer[link]['start'], road_links_inside_buffer[link]['end'], fid = link, weight = road_links_inside_buffer[link]['length'])
+        itn_nodes.add_edge(road_links_inside_buffer[link]['start'], road_links_inside_buffer[link]['end'], fid=link, weight=road_links_inside_buffer[link]['length'])
         # compute all the road links between the nearest point to the user input coordinate
         # and the nearest point to the highest elevation point
 
@@ -169,13 +169,20 @@ if __name__ == "__main__":
         geom.append(LineString(road_links[link_fid]['coords']))
         first_node = node
     shortest_path_gpd = gpd.GeoDataFrame({'fid': links, 'geometry': geom})
-    shortest_path_gpd.plot()
 
     # fig, ax = plt.subplots()
+    # shortest_path_gpd.plot(ax=ax, color='black', linewidth=1)
+    # rasterio.plot.show(main_map, ax=ax)
+    #
+    # # for line in all_new_line_strings:
+    # #     x, y = line.xy
+    # #     ax.plot(x, y, color='green', alpha=0.5)
+    # # for point in all_node_points_inside_buffer:
+    # #     ax.plot(point.x, point.y, 'bo', markersize=1)
+    # ax.plot(user_point.x, user_point.y, 'ro', markersize=2)
+    # ax.plot(highest_elev.x, highest_elev.y, 'ro', markersize=2)
 
-    # for line in all_new_line_strings:
-    #     x, y = line.xy
-    #     ax.plot(x, y)
+
 
     # print(len(all_new_line_strings))
     #
