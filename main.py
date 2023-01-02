@@ -56,10 +56,30 @@ def get_highest_point(buffer_study_area):
     # y = indices_x_y[1][0] i.e y position in the array
     x_max_elev = buffer_study_area.bounds[0] + indices_x_y[2][0] * 5
     y_max_elev = buffer_study_area.bounds[3] - indices_x_y[1][0] * 5
-    print(numpy.max(study_area[0]))
+    # print(numpy.max(study_area[0]))
     plt.plot(x_max_elev, y_max_elev, 'ro')
     rasterio.plot.show(study_area[0], transform=study_area[1])
     return Point([x_max_elev, y_max_elev])
+
+
+def get_closest_node_point(point, all_nodes_inside_buffer):
+    """
+    Takes a point and a list of all node points inside the buffer around the point. Returns the closest
+    node(Point Object) to the given point
+    :param point: A Point Object (user_input and the user point)
+    :param all_nodes_inside_buffer: list of all the node points inside the buffer around user point
+    :return: returns a node (Point Object) closest to the point
+    """
+    total_distance_from_point = 100000
+    closest_node_to_point = Point()
+
+    for i in all_nodes_inside_buffer:
+        if point.distance(i) < total_distance_from_point:
+            closest_node_to_point = i
+            total_distance_from_point = point.distance(i)
+        else:
+            pass
+    return closest_node_to_point
 
 
 if __name__ == "__main__":
@@ -74,14 +94,12 @@ if __name__ == "__main__":
 
     # Task 2: Returns the point of highest elevation
     highest_elev = get_highest_point(study_buffer)
-    print(highest_elev)
+    # print(highest_elev)
 
-    # Task 3: Working with ITN
-    # itn_network = pd.read_json('D:/UCL/Geospatial Programming/Material/itn/solent_itn.json')
-    # print(itn_network.head())
+    # Task 3: Working with ITN and getting closest node to both points
     itn_json_path = os.path.join('D:/UCL/Geospatial Programming/Material/itn/solent_itn.json')
     with open(itn_json_path, 'r') as f:
-        itn_json = json.load(f)      #read json file
+        itn_json = json.load(f)
 
     itn_nodes = nx.Graph()
     road_links = itn_json['roadlinks']
@@ -89,36 +107,39 @@ if __name__ == "__main__":
     road_links_inside_buffer = {}
     road_nodes_inside_buffer = {}
     all_new_line_strings = []
-    all_new_points = []
+    all_node_points_inside_buffer = []
 
     for links in road_links:
-        new_line_string = LineString(road_links[links]['coords'])    #convert the road links from json into linestrings
+        new_line_string = LineString(road_links[links]['coords'])
         if study_buffer.contains(new_line_string):
             road_links_inside_buffer[links] = road_links[links]
-            all_new_line_strings.append(new_line_string)             #create road links within the buffer zone
+            all_new_line_strings.append(new_line_string)
 
     for nodes in road_nodes:
-        new_node_point = Point(road_nodes[nodes]['coords'])    #convert node points from json into point coordinates
+        new_node_point = Point(road_nodes[nodes]['coords'])
         if study_buffer.contains(new_node_point):
             road_nodes_inside_buffer[nodes] = road_nodes[nodes]
-            all_new_points.append(new_node_point)              #create node points within the buffer zone
+            all_node_points_inside_buffer.append(new_node_point)
 
-    closest_distance_user_point_dist = 100000
-    closest_distance_highest_elev_dist = 100000
-    closest_distance_user_point = Point()
-    closest_distance_highest_elev = Point()
+    # closest_distance_user_point_dist = 100000
+    # closest_distance_highest_elev_dist = 100000
+    # closest_distance_user_point = Point()
+    # closest_distance_highest_elev = Point()
+    #
+    # for i in all_node_points_inside_buffer:
+    #     if user_point.distance(i) < closest_distance_user_point_dist:
+    #         closest_distance_user_point = i
+    #         closest_distance_user_point_dist = user_point.distance(i)
+    #     else:
+    #         pass
+    #
+    # for i in all_node_points_inside_buffer:
+    #     if highest_elev.distance(i) < closest_distance_highest_elev_dist:
+    #         closest_distance_highest_elev = i
+    #         closest_distance_highest_elev_dist = highest_elev.distance(i)
 
-    for x in all_new_points:
-        if user_point.distance(x) < closest_distance_user_point_dist:
-            closest_distance_user_point = x
-            closest_distance_user_point_dist = user_point.distance(x)
-        else:
-            pass        #find the nearest node point to the user input coordinate
-
-    for x in all_new_points:
-        if highest_elev.distance(x) < closest_distance_highest_elev_dist:
-            closest_distance_highest_elev = x
-            closest_distance_highest_elev_dist = highest_elev.distance(x)    #find the nearest node points to the highest elevation coordinate
+    closest_distance_user_point = get_closest_node_point(user_point, all_node_points_inside_buffer)
+    closest_distance_highest_elev = get_closest_node_point(highest_elev, all_node_points_inside_buffer)
 
     print(closest_distance_user_point)
     print(closest_distance_highest_elev)         # check the for loop for error
@@ -128,31 +149,40 @@ if __name__ == "__main__":
 
     for nodes in road_nodes_inside_buffer:
         if [closest_distance_user_point.x, closest_distance_user_point.y] == road_nodes_inside_buffer[nodes]['coords']:
-            closest_node_id_user = nodes     #find the id of nearest node to user input coordinate
+            closest_node_id_user = nodes
 
     for nodes in road_nodes_inside_buffer:
         if [closest_distance_highest_elev.x, closest_distance_highest_elev.y] == road_nodes_inside_buffer[nodes]['coords']:
-            closest_node_id_high_elev = nodes   #find the id of nearest node to highest elevation coordinate
+            closest_node_id_high_elev = nodes
 
     print(closest_node_id_user)
-    print(closest_node_id_high_elev)     #check the for loop for error
-
-
+    print(closest_node_id_high_elev)
 
     # print(road_links_inside_buffer)
     for link in road_links_inside_buffer:
         itn_nodes.add_edge(road_links_inside_buffer[link]['start'], road_links_inside_buffer[link]['end'], fid = link, weight = road_links_inside_buffer[link]['length'])
-        #compute all the road links between the nearest point to the user input coordinate and the nearest point to the highest elevation point
+
     path = nx.dijkstra_path(itn_nodes, source=closest_node_id_user, target=closest_node_id_high_elev, weight='weight')
-         #find the shortest road links
     print(path)
-    print(len(road_links_inside_buffer))
-    print(len(road_links))
+
+    # Following Code Block was taken from Practical Section of Week 8 from Jupyter Notebook
+    links = []
+    geom = []
+    first_node = path[0]
+    for node in path[1:]:
+        link_fid = itn_nodes.edges[first_node, node]['fid']
+        links.append(link_fid)
+        geom.append(LineString(road_links[link_fid]['coords']))
+        first_node = node
+    shortest_path_gpd = gpd.GeoDataFrame({'fid': links, 'geometry': geom})
+    shortest_path_gpd.plot()
 
     # fig, ax = plt.subplots()
+
     # for line in all_new_line_strings:
     #     x, y = line.xy
     #     ax.plot(x, y)
+
     # print(len(all_new_line_strings))
     #
     # for point in all_new_points:
