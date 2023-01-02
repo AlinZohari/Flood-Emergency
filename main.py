@@ -62,6 +62,19 @@ def get_highest_point(buffer_study_area):
     return Point([x_max_elev, y_max_elev])
 
 
+def find_elevation_by_point(point, buffer_study_area):
+    """
+    Find elevation at any given point
+    :param point: Point Object
+    :param buffer_study_area: buffer area around the user point
+    :return: elevation value as a float
+    """
+    study_area = rasterio.mask.mask(dem, [buffer_study_area], crop=True, filled=True)
+    x_index = int((point.x - buffer_study_area.bounds[0]) / 5)
+    y_index = int((buffer_study_area.bounds[3] - point.y) / 5)
+    return study_area[0][0][y_index][x_index]
+
+
 def get_closest_node_point(point, all_nodes_inside_buffer):
     """
     Takes a point and a list of all node points inside the buffer around the point. Returns the closest
@@ -100,6 +113,7 @@ if __name__ == "__main__":
     main_map = rasterio.open('D:/UCL/Geospatial Programming/Material/background/raster-50k_2724246.tif')
     dem = rasterio.open('D:/UCL/Geospatial Programming/Material/elevation/sz.asc')
     print(dem.bounds)
+    print(dem)
 
     user_point = user_input()
     study_buffer = get_buffer(user_point)
@@ -108,7 +122,8 @@ if __name__ == "__main__":
 
     # Task 2: Returns the point of highest elevation
     highest_elev = get_highest_point(study_buffer)
-    # print(highest_elev)
+    print(highest_elev)
+    print(find_elevation_by_point(highest_elev, study_buffer))
 
     # Task 3: Working with ITN and getting closest node to both points
     itn_json_path = os.path.join('D:/UCL/Geospatial Programming/Material/itn/solent_itn.json')
@@ -170,17 +185,17 @@ if __name__ == "__main__":
         first_node = node
     shortest_path_gpd = gpd.GeoDataFrame({'fid': links, 'geometry': geom})
 
-    # fig, ax = plt.subplots()
-    # shortest_path_gpd.plot(ax=ax, color='black', linewidth=1)
-    # rasterio.plot.show(main_map, ax=ax)
-    #
-    # # for line in all_new_line_strings:
-    # #     x, y = line.xy
-    # #     ax.plot(x, y, color='green', alpha=0.5)
-    # # for point in all_node_points_inside_buffer:
-    # #     ax.plot(point.x, point.y, 'bo', markersize=1)
-    # ax.plot(user_point.x, user_point.y, 'ro', markersize=2)
-    # ax.plot(highest_elev.x, highest_elev.y, 'ro', markersize=2)
+    fig, ax = plt.subplots()
+    shortest_path_gpd.plot(ax=ax, color='black', linewidth=1)
+    rasterio.plot.show(main_map, ax=ax)
+
+    # for line in all_new_line_strings:
+    #     x, y = line.xy
+    #     ax.plot(x, y, color='green', alpha=0.5)
+    for point in all_node_points_inside_buffer:
+        ax.plot(point.x, point.y, 'bo', markersize=3)
+    ax.plot(user_point.x, user_point.y, 'ro', markersize=5)
+    ax.plot(highest_elev.x, highest_elev.y, 'ro', markersize=5)
 
 
 
