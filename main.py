@@ -23,7 +23,7 @@ def user_input():
     y = float(input('Insert y coordinate:'))
     input_point = Point([x, y])
 
-    if 430000 <= x <= 465000 and 80000 <= y <= 95000:
+    if 425000 <= x <= 470000 and 75000 <= y <= 100000:
         plt.plot(x, y, 'ro')
         return input_point
     else:
@@ -109,6 +109,24 @@ def get_id_of_closest_node(closest_node, node_points_inside_buffer):
     return closest_node_id
 
 
+def get_time_for_roadlink(roadlink, buffer):
+    """
+    Returns time in minutes to travel a roadlink between 2 nodes by taking into account the elevation using
+    Naismith's rule
+    :param roadlink: Roadlink Id
+    :param buffer: Study Buffer
+    :return: Minutes needed to travel as an int
+    """
+    start_node_elevation = find_elevation_by_point(Point(roadlink['coords'][0]), buffer)
+    end_node_elevation = find_elevation_by_point(Point(roadlink['coords'][-1]), buffer)
+    if end_node_elevation > start_node_elevation:
+        added_time = roadlink['length'] // 10
+        time_taken = (roadlink['length'] / 5000) * 60 + added_time
+    else:
+        time_taken = (roadlink['length'] / 5000) * 60
+    return time_taken
+
+
 if __name__ == "__main__":
     main_map = rasterio.open('D:/UCL/Geospatial Programming/Material/background/raster-50k_2724246.tif')
     dem = rasterio.open('D:/UCL/Geospatial Programming/Material/elevation/sz.asc')
@@ -154,6 +172,10 @@ if __name__ == "__main__":
     closest_distance_user_point = get_closest_node_point(user_point, all_node_points_inside_buffer)
     closest_distance_highest_elev = get_closest_node_point(highest_elev, all_node_points_inside_buffer)
 
+    # Add a new value to the road_links_inside_buffer dictionary for time take to be used as weight
+    for i in road_links_inside_buffer:
+        road_links_inside_buffer[i]['time taken'] = get_time_for_roadlink(road_links_inside_buffer[i], study_buffer)
+
     print(closest_distance_user_point)
     print(closest_distance_highest_elev)         # check the for loop for error
 
@@ -166,7 +188,7 @@ if __name__ == "__main__":
 
     # print(road_links_inside_buffer)
     for link in road_links_inside_buffer:
-        itn_nodes.add_edge(road_links_inside_buffer[link]['start'], road_links_inside_buffer[link]['end'], fid=link, weight=road_links_inside_buffer[link]['length'])
+        itn_nodes.add_edge(road_links_inside_buffer[link]['start'], road_links_inside_buffer[link]['end'], fid=link, weight=road_links_inside_buffer[link]['time taken'])
         # compute all the road links between the nearest point to the user input coordinate
         # and the nearest point to the highest elevation point
 
