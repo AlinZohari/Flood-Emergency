@@ -229,5 +229,4 @@ if __name__ == "__main__":
 
     # nx.draw(itn_nodes, node_size=1)
 
-
     plt.show()
