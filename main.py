@@ -119,8 +119,9 @@ def get_time_for_roadlink(roadlink, buffer):
     """
     start_node_elevation = find_elevation_by_point(Point(roadlink['coords'][0]), buffer)
     end_node_elevation = find_elevation_by_point(Point(roadlink['coords'][-1]), buffer)
-    if end_node_elevation > start_node_elevation:
-        added_time = roadlink['length'] // 10
+    elevation_change = end_node_elevation - start_node_elevation
+    if elevation_change > 0:
+        added_time = elevation_change // 10
         time_taken = (roadlink['length'] / 5000) * 60 + added_time
     else:
         time_taken = (roadlink['length'] / 5000) * 60
@@ -128,8 +129,8 @@ def get_time_for_roadlink(roadlink, buffer):
 
 
 if __name__ == "__main__":
-    main_map = rasterio.open('D:/UCL/Geospatial Programming/Material/background/raster-50k_2724246.tif')
-    dem = rasterio.open('D:/UCL/Geospatial Programming/Material/elevation/sz.asc')
+    main_map = rasterio.open('/Users/apple/Desktop/0096/second assignment/Material/background/raster-50k_2724246.tif')
+    dem = rasterio.open('/Users/apple/Desktop/0096/second assignment/Material/elevation/sz.asc')
     print(dem.bounds)
     print(dem)
 
@@ -144,7 +145,7 @@ if __name__ == "__main__":
     print(find_elevation_by_point(highest_elev, study_buffer))
 
     # Task 3: Working with ITN and getting closest node to both points
-    itn_json_path = os.path.join('D:/UCL/Geospatial Programming/Material/itn/solent_itn.json')
+    itn_json_path = os.path.join('/Users/apple/Desktop/0096/second assignment/Material/itn/solent_itn.json')
     with open(itn_json_path, 'r') as f:
         itn_json = json.load(f)        # read json file
 
