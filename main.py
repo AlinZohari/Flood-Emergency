@@ -37,10 +37,18 @@ def get_buffer(point):
     :param point: a Point Class object from Shapely Package
     :return: buffer_zone (Polygon) and plots it
     """
-    buffer_zone = point.buffer(5000)  # Make a new function for this buffer task
-    xp, yp = buffer_zone.exterior.xy
-    plt.fill(xp, yp, facecolor='blue', alpha=0.5)
-    return buffer_zone
+    if 430000 <= point.x <= 465000 and 80000 <= point.y <= 95000:
+        buffer_zone = point.buffer(5000)  # Make a new function for this buffer task
+        xp, yp = buffer_zone.exterior.xy
+        plt.fill(xp, yp, facecolor='blue', alpha=0.5)
+        return buffer_zone
+    else:
+        buffer_zone = point.buffer(5000)
+        map_bounds = Polygon([(428825.0, 74465.0), (466875.0, 74465.0), (466875.0, 97470.0), (428825.0, 97470.0)])
+        t6_buffer_zone = buffer_zone.intersection(map_bounds)
+        xp, yp = t6_buffer_zone.exterior.xy
+        plt.fill(xp, yp, facecolor='blue', alpha=0.5)
+        return t6_buffer_zone
 
 
 def get_highest_point(buffer_study_area):
@@ -129,8 +137,9 @@ def get_time_for_roadlink(roadlink, buffer):
 
 
 if __name__ == "__main__":
-    main_map = rasterio.open('/Users/apple/Desktop/0096/second assignment/Material/background/raster-50k_2724246.tif')
-    dem = rasterio.open('/Users/apple/Desktop/0096/second assignment/Material/elevation/sz.asc')
+    main_map = rasterio.open('D:/UCL/Geospatial Programming/Material/background/raster-50k_2724246.tif')
+    dem = rasterio.open('D:/UCL/Geospatial Programming/Material/elevation/sz.asc')
+    print(main_map.bounds)
     print(dem.bounds)
     print(dem)
 
@@ -145,7 +154,7 @@ if __name__ == "__main__":
     print(find_elevation_by_point(highest_elev, study_buffer))
 
     # Task 3: Working with ITN and getting closest node to both points
-    itn_json_path = os.path.join('/Users/apple/Desktop/0096/second assignment/Material/itn/solent_itn.json')
+    itn_json_path = os.path.join('D:/UCL/Geospatial Programming/Material/itn/solent_itn.json')
     with open(itn_json_path, 'r') as f:
         itn_json = json.load(f)        # read json file
 
@@ -196,6 +205,11 @@ if __name__ == "__main__":
     path = nx.dijkstra_path(itn_nodes, source=closest_node_id_user, target=closest_node_id_high_elev, weight='weight')
     # find the shortest road links
     print(path)
+
+    # checks total time taken by using time as weight
+    # time_taken = nx.shortest_path_length(itn_nodes, source=closest_node_id_user,
+    #                                       target=closest_node_id_high_elev, weight='weight', method='dijkstra')
+    # print(time_taken)
 
     # Following Code Block was taken from Practical Section of Week 8 from Jupyter Notebook
     links = []
