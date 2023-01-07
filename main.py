@@ -14,20 +14,24 @@ import networkx as nx
 import scipy as sp
 
 
-def user_input():
+def user_input(island_bounds):
     """
     Takes user input and makes sure it's in the MBR
+    :param island_bounds: a shapefile polygon to check if the user point is on the island.
     :return: returns a Point if it is inside the MBR
     """
     x = float(input('Insert x coordinate:'))
     y = float(input('Insert y coordinate:'))
     input_point = Point([x, y])
-
-    if 425000 <= x <= 470000 and 75000 <= y <= 100000:
-        plt.plot(x, y, 'ro')
-        return input_point
+    if island_bounds.contains(input_point):
+        if 425000 <= x <= 470000 and 75000 <= y <= 100000:
+            plt.plot(x, y, 'ro')
+            return input_point
+        else:
+            print("The co-ordinates are out of bounds")
+            exit()
     else:
-        print("The co-ordinates are out of bounds")
+        print("You are already drowning in water.")
         exit()
 
 def user_wd():
@@ -149,14 +153,16 @@ if __name__ == "__main__":
         print("Please enter the file path ending with '/Material':")
         working_d = user_wd()
 
-
     main_map = rasterio.open(working_d + '/background/raster-50k_2724246.tif')
     dem = rasterio.open(working_d + '/elevation/sz.asc')
+    island_shape_df = gpd.read_file('D:/UCL/Geospatial Programming/Material/shape/isle_of_wight.shp')
+    island_shape = island_shape_df['geometry'][0]
+
     print(main_map.bounds)
     print(dem.bounds)
     print(dem)
 
-    user_point = user_input()
+    user_point = user_input(island_shape)
     study_buffer = get_buffer(user_point)
     rasterio.plot.show(main_map, extent=study_buffer)
     print(study_buffer)
