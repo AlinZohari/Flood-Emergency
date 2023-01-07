@@ -30,14 +30,6 @@ def user_input():
         print("The co-ordinates are out of bounds")
         exit()
 
-def user_wd():
-    """
-    Get user's working directory by asking the 'Material' file path
-    :return: returns a String of the path
-    """
-    wd = input('Input your Material file path:')
-    return wd
-
 
 def get_buffer(point):
     """
@@ -145,14 +137,8 @@ def get_time_for_roadlink(roadlink, buffer):
 
 
 if __name__ == "__main__":
-
-    working_directory = user_wd()
-    if working_directory.endswith('/Material') == False:
-        print("Please enter the path of the 'Material' file, ending with '/Material':")
-        working_directory = user_wd()
-
-    main_map = rasterio.open(working_directory + '/background/raster-50k_2724246.tif')
-    dem = rasterio.open(working_directory + '/elevation/sz.asc')
+    main_map = rasterio.open('D:/UCL/Geospatial Programming/Material/background/raster-50k_2724246.tif')
+    dem = rasterio.open('D:/UCL/Geospatial Programming/Material/elevation/sz.asc')
     print(main_map.bounds)
     print(dem.bounds)
     print(dem)
@@ -168,7 +154,7 @@ if __name__ == "__main__":
     print(find_elevation_by_point(highest_elev, study_buffer))
 
     # Task 3: Working with ITN and getting closest node to both points
-    itn_json_path = os.path.join(working_directory + '/itn/solent_itn.json')
+    itn_json_path = os.path.join('D:/UCL/Geospatial Programming/Material/itn/solent_itn.json')
     with open(itn_json_path, 'r') as f:
         itn_json = json.load(f)        # read json file
 
