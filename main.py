@@ -1,5 +1,6 @@
 import numpy
 import geopandas as gpd
+import numpy as np
 import pandas as pd
 import rasterio
 import rasterio.mask
@@ -12,6 +13,8 @@ import os
 import json
 import networkx as nx
 import scipy as sp
+import pyproj
+from cartopy import crs
 
 
 def user_input(island_bounds):
@@ -25,7 +28,7 @@ def user_input(island_bounds):
     input_point = Point([x, y])
     if island_bounds.contains(input_point):
         if 425000 <= x <= 470000 and 75000 <= y <= 100000:
-            plt.plot(x, y, 'ro')
+            # plt.plot(x, y, 'ro')
             return input_point
         else:
             print("The co-ordinates are out of bounds")
@@ -33,6 +36,7 @@ def user_input(island_bounds):
     else:
         print("You are already drowning in water.")
         exit()
+
 
 def user_wd():
     """
@@ -43,6 +47,7 @@ def user_wd():
     wd = wd.replace('\\', '/')
     return wd
 
+
 def get_buffer(point):
     """
     Takes a point as an input and returns a 5km bufferzone around it
@@ -51,15 +56,15 @@ def get_buffer(point):
     """
     if 430000 <= point.x <= 465000 and 80000 <= point.y <= 95000:
         buffer_zone = point.buffer(5000)  # Make a new function for this buffer task
-        xp, yp = buffer_zone.exterior.xy
-        plt.fill(xp, yp, facecolor='blue', alpha=0.5)
+        # xp, yp = buffer_zone.exterior.xy
+        # plt.fill(xp, yp, facecolor='blue', alpha=0.5)
         return buffer_zone
     else:
         buffer_zone = point.buffer(5000)
         map_bounds = Polygon([(428825.0, 74465.0), (466875.0, 74465.0), (466875.0, 97470.0), (428825.0, 97470.0)])
         t6_buffer_zone = buffer_zone.intersection(map_bounds)
-        xp, yp = t6_buffer_zone.exterior.xy
-        plt.fill(xp, yp, facecolor='blue', alpha=0.5)
+        # xp, yp = t6_buffer_zone.exterior.xy
+        # plt.fill(xp, yp, facecolor='blue', alpha=0.5)
         return t6_buffer_zone
 
 
@@ -77,8 +82,8 @@ def get_highest_point(buffer_study_area):
     x_max_elev = buffer_study_area.bounds[0] + indices_x_y[2][0] * 5
     y_max_elev = buffer_study_area.bounds[3] - indices_x_y[1][0] * 5
     # print(numpy.max(study_area[0]))
-    plt.plot(x_max_elev, y_max_elev, 'ro')
-    rasterio.plot.show(study_area[0], transform=study_area[1])
+    # plt.plot(x_max_elev, y_max_elev, 'ro')
+    # rasterio.plot.show(study_area[0], transform=study_area[1])
     return Point([x_max_elev, y_max_elev])
 
 
@@ -165,11 +170,14 @@ if __name__ == "__main__":
 
     user_point = user_input(island_shape)
     study_buffer = get_buffer(user_point)
-    rasterio.plot.show(main_map, extent=study_buffer)
+    # rasterio.plot.show(main_map, extent=study_buffer)
     # print(study_buffer)
 
     # Task 2: Returns the point of highest elevation
     highest_elev = get_highest_point(study_buffer)
+    study_area = rasterio.mask.mask(dem, [study_buffer], crop=True, filled=True)
+    study_area[0][study_area[0] == 0] = None
+
     # print(highest_elev)
     # print(find_elevation_by_point(highest_elev, study_buffer))
 
@@ -237,24 +245,28 @@ if __name__ == "__main__":
         first_node = node
     shortest_path_gpd = gpd.GeoDataFrame({'fid': links, 'geometry': geom})
 
-    fig, ax = plt.subplots()
-    shortest_path_gpd.plot(ax=ax, color='black', linewidth=1)
-    rasterio.plot.show(main_map, ax=ax)
+    # fig, ax = plt.subplots
 
-    # for line in all_new_line_strings:
-    #     x, y = line.xy
-    #     ax.plot(x, y, color='green', alpha=0.5)
-    for point in all_node_points_inside_buffer:
-        ax.plot(point.x, point.y, 'bo', markersize=3)
-    ax.plot(user_point.x, user_point.y, 'ro', markersize=5)
-    ax.plot(highest_elev.x, highest_elev.y, 'ro', markersize=5)
+    # Following Code block was taken from Practical Section of Week 8 from Jupyter Notebook
+    back_array_main_map = main_map.read(1)
+    pallete_main_map = np.array(([value for key, value in main_map.colormap(1).items()]))
+    background_image = pallete_main_map[back_array_main_map]
+    bounds = main_map.bounds
+    extent = [bounds.left, bounds.right, bounds.bottom, bounds.top]
+    display_extent = [user_point.x - 10000, user_point.x + 10000, user_point.y - 10000, user_point.y + 10000]
+    fig = plt.figure(figsize=(3, 3), dpi=300)
+    ax = fig.add_subplot(1, 1, 1, projection=crs.OSGB())
+    # fig, ax = plt.subplots()
 
-    # print(len(all_new_line_strings))
-    #
-    # for point in all_new_points:
-    #     x, y = point.xy
-    #     ax.plot(x, y, 'ro')
+    # plotting all objects
+    ax.imshow(background_image, origin='upper', extent=extent, zorder=0)
+    rasterio.plot.show(study_area[0], transform=study_area[1], ax=ax, zorder=1, alpha=0.5)
+    ax.plot(user_point.x, user_point.y, 'ro',zorder=2, markersize=1)
+    ax.plot(highest_elev.x, highest_elev.y, 'go', zorder=3, markersize=1)
+    shortest_path_gpd.plot(ax=ax, edgecolor='blue', linewidth=0.5, zorder=4)
+    ax.set_extent(display_extent, crs=crs.OSGB())
 
-    # nx.draw(itn_nodes, node_size=1)
+    # adding map elements
+
 
     plt.show()
