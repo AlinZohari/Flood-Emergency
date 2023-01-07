@@ -45,7 +45,9 @@ def get_buffer(point):
     else:
         buffer_zone = point.buffer(5000)
         map_bounds = Polygon([(428825.0, 74465.0), (466875.0, 74465.0), (466875.0, 97470.0), (428825.0, 97470.0)])
+        #create a polygon of map boundary
         t6_buffer_zone = buffer_zone.intersection(map_bounds)
+        #intersection of buffer zone and polygon of map boundary
         xp, yp = t6_buffer_zone.exterior.xy
         plt.fill(xp, yp, facecolor='blue', alpha=0.5)
         return t6_buffer_zone
@@ -66,7 +68,7 @@ def get_highest_point(buffer_study_area):
     y_max_elev = buffer_study_area.bounds[3] - indices_x_y[1][0] * 5
     # print(numpy.max(study_area[0]))
     plt.plot(x_max_elev, y_max_elev, 'ro')
-    rasterio.plot.show(study_area[0], transform=study_area[1])
+    rasterio.plot.show(study_area[0], transform=study_area[1])  #what is this?
     return Point([x_max_elev, y_max_elev])
 
 
@@ -137,8 +139,8 @@ def get_time_for_roadlink(roadlink, buffer):
 
 
 if __name__ == "__main__":
-    main_map = rasterio.open('D:/UCL/Geospatial Programming/Material/background/raster-50k_2724246.tif')
-    dem = rasterio.open('D:/UCL/Geospatial Programming/Material/elevation/sz.asc')
+    main_map = rasterio.open('C:/Users/zhang/Desktop/year 4/term 1/CEGE0096 Geospatial Programming/Material/Material/background/raster-50k_2724246.tif')
+    dem = rasterio.open('C:/Users/zhang/Desktop/year 4/term 1/CEGE0096 Geospatial Programming/Material/Material/elevation/sz.asc')
     print(main_map.bounds)
     print(dem.bounds)
     print(dem)
@@ -154,7 +156,7 @@ if __name__ == "__main__":
     print(find_elevation_by_point(highest_elev, study_buffer))
 
     # Task 3: Working with ITN and getting closest node to both points
-    itn_json_path = os.path.join('D:/UCL/Geospatial Programming/Material/itn/solent_itn.json')
+    itn_json_path = os.path.join('C:/Users/zhang/Desktop/year 4/term 1/CEGE0096 Geospatial Programming/Material/Material/itn/solent_itn.json')
     with open(itn_json_path, 'r') as f:
         itn_json = json.load(f)        # read json file
 
