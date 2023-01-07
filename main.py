@@ -151,12 +151,12 @@ def get_time_for_roadlink(roadlink, buffer):
 if __name__ == "__main__":
     working_d = user_wd()
     if working_d.endswith('/Material') == False:
-        print("Please enter the file path ending with '/Material':")
+        print("Please enter the file path ending with 'Material':")
         working_d = user_wd()
 
     main_map = rasterio.open(working_d + '/background/raster-50k_2724246.tif')
     dem = rasterio.open(working_d + '/elevation/sz.asc')
-    island_shape_df = gpd.read_file('D:/UCL/Geospatial Programming/Material/shape/isle_of_wight.shp')
+    island_shape_df = gpd.read_file(working_d + '/shape/isle_of_wight.shp')
     island_shape = island_shape_df['geometry'][0]
 
     # print(main_map.bounds)
