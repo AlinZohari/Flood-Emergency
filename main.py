@@ -40,6 +40,7 @@ def user_wd():
         :return: returns a String
         """
     wd = input('Input your Material file path:')
+    wd = wd.replace('\\', '/')
     return wd
 
 def get_buffer(point):
@@ -158,19 +159,19 @@ if __name__ == "__main__":
     island_shape_df = gpd.read_file('D:/UCL/Geospatial Programming/Material/shape/isle_of_wight.shp')
     island_shape = island_shape_df['geometry'][0]
 
-    print(main_map.bounds)
-    print(dem.bounds)
-    print(dem)
+    # print(main_map.bounds)
+    # print(dem.bounds)
+    # print(dem)
 
     user_point = user_input(island_shape)
     study_buffer = get_buffer(user_point)
     rasterio.plot.show(main_map, extent=study_buffer)
-    print(study_buffer)
+    # print(study_buffer)
 
     # Task 2: Returns the point of highest elevation
     highest_elev = get_highest_point(study_buffer)
-    print(highest_elev)
-    print(find_elevation_by_point(highest_elev, study_buffer))
+    # print(highest_elev)
+    # print(find_elevation_by_point(highest_elev, study_buffer))
 
     # Task 3: Working with ITN and getting closest node to both points
     itn_json_path = os.path.join(working_d + '/itn/solent_itn.json')
@@ -222,13 +223,8 @@ if __name__ == "__main__":
         # and the nearest point to the highest elevation point
 
     path = nx.dijkstra_path(itn_nodes, source=closest_node_id_user, target=closest_node_id_high_elev, weight='weight')
-    # find the shortest road links
+    # find the shortest road nodes
     print(path)
-
-    # checks total time taken by using time as weight
-    # time_taken = nx.shortest_path_length(itn_nodes, source=closest_node_id_user,
-    #                                       target=closest_node_id_high_elev, weight='weight', method='dijkstra')
-    # print(time_taken)
 
     # Following Code Block was taken from Practical Section of Week 8 from Jupyter Notebook
     links = []
@@ -252,8 +248,6 @@ if __name__ == "__main__":
         ax.plot(point.x, point.y, 'bo', markersize=3)
     ax.plot(user_point.x, user_point.y, 'ro', markersize=5)
     ax.plot(highest_elev.x, highest_elev.y, 'ro', markersize=5)
-
-
 
     # print(len(all_new_line_strings))
     #
