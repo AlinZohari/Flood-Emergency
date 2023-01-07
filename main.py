@@ -149,6 +149,7 @@ if __name__ == "__main__":
         print("Please enter the file path ending with '/Material':")
         working_d = user_wd()
 
+
     main_map = rasterio.open(working_d + '/background/raster-50k_2724246.tif')
     dem = rasterio.open(working_d + '/elevation/sz.asc')
     print(main_map.bounds)
