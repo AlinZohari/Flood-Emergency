@@ -15,7 +15,7 @@ import networkx as nx
 import scipy as sp
 import pyproj
 from cartopy import crs
-
+from matplotlib_scalebar.scalebar import ScaleBar
 
 def user_input(island_bounds):
     """
@@ -70,11 +70,11 @@ def get_buffer(point):
 
 def get_highest_point(buffer_study_area):
     """
-    Gets the buffer area around the user's point and plots and returns the highest elevation point in that area.
+    Returns a tuple of highest elevation point as well as a dem masked inside buffer.
     :param buffer_study_area: a buffer raster
-    :return: Point of highest elevation
+    :return: Tuple of point of highest elevation and dem raster masked in buffer zone
     """
-    study_area = rasterio.mask.mask(dem, [buffer_study_area], crop=True, filled=True)  # Main Study Area
+    study_area = rasterio.mask.mask(dem, [buffer_study_area], crop=True, filled=False)  # Main Study Area
 
     indices_x_y = numpy.where(study_area[0] == study_area[0].max())          # returns 3 arrays with 1 element each
     # x = indices_x_y[2][0] i.e. x position in the array
@@ -84,7 +84,7 @@ def get_highest_point(buffer_study_area):
     # print(numpy.max(study_area[0]))
     # plt.plot(x_max_elev, y_max_elev, 'ro')
     # rasterio.plot.show(study_area[0], transform=study_area[1])
-    return Point([x_max_elev, y_max_elev])
+    return Point([x_max_elev, y_max_elev]), study_area
 
 
 def find_elevation_by_point(point, buffer_study_area):
@@ -164,19 +164,12 @@ if __name__ == "__main__":
     island_shape_df = gpd.read_file(working_d + '/shape/isle_of_wight.shp')
     island_shape = island_shape_df['geometry'][0]
 
-    # print(main_map.bounds)
-    # print(dem.bounds)
-    # print(dem)
-
     user_point = user_input(island_shape)
     study_buffer = get_buffer(user_point)
-    # rasterio.plot.show(main_map, extent=study_buffer)
-    # print(study_buffer)
 
     # Task 2: Returns the point of highest elevation
-    highest_elev = get_highest_point(study_buffer)
-    study_area = rasterio.mask.mask(dem, [study_buffer], crop=True, filled=True)
-    study_area[0][study_area[0] == 0] = None
+    highest_elev, study_area = get_highest_point(study_buffer)
+
 
     # print(highest_elev)
     # print(find_elevation_by_point(highest_elev, study_buffer))
@@ -245,8 +238,7 @@ if __name__ == "__main__":
         first_node = node
     shortest_path_gpd = gpd.GeoDataFrame({'fid': links, 'geometry': geom})
 
-    # fig, ax = plt.subplots
-
+    # Plotting
     # Following Code block was taken from Practical Section of Week 8 from Jupyter Notebook
     back_array_main_map = main_map.read(1)
     pallete_main_map = np.array(([value for key, value in main_map.colormap(1).items()]))
@@ -256,17 +248,28 @@ if __name__ == "__main__":
     display_extent = [user_point.x - 10000, user_point.x + 10000, user_point.y - 10000, user_point.y + 10000]
     fig = plt.figure(figsize=(3, 3), dpi=300)
     ax = fig.add_subplot(1, 1, 1, projection=crs.OSGB())
-    # fig, ax = plt.subplots()
 
     # plotting all objects
     ax.imshow(background_image, origin='upper', extent=extent, zorder=0)
-    rasterio.plot.show(study_area[0], transform=study_area[1], ax=ax, zorder=1, alpha=0.5)
-    ax.plot(user_point.x, user_point.y, 'ro',zorder=2, markersize=1)
-    ax.plot(highest_elev.x, highest_elev.y, 'go', zorder=3, markersize=1)
-    shortest_path_gpd.plot(ax=ax, edgecolor='blue', linewidth=0.5, zorder=4)
+    rasterio.plot.show(study_area[0], transform=study_area[1], ax=ax, zorder=1, alpha=0.7, cmap='gist_earth')
+    ax.plot(user_point.x, user_point.y, 'ro', zorder=2, markersize=1, label='User Position')
+    ax.plot(highest_elev.x, highest_elev.y, 'go', zorder=3, markersize=1, label='Highest Elevation')
+    shortest_path_gpd.plot(ax=ax, edgecolor='blue', linewidth=0.5, zorder=4, label='Quickest Evacuation Route')
     ax.set_extent(display_extent, crs=crs.OSGB())
 
-    # adding map elements
+    # # adding map elements
+    # legend
+    leg = ax.legend(loc='lower left', fontsize=4)
+    # Scale Bar
+    scalebar = ScaleBar(1, location='lower right', box_alpha=0)
+    ax.add_artist(scalebar)
+
+    # North Arrow
+    x, y, arrow_length = 0.95, 0.95, 0.18
+    ax.annotate('N', xy=(x, y), xytext=(x, y - arrow_length),
+                arrowprops=dict(facecolor='black', width=1, headwidth=3),
+                ha='center', va='center', fontsize=6,
+                xycoords=ax.transAxes)
 
 
     plt.show()
