@@ -31,8 +31,13 @@ def user_input():
         exit()
 
 def user_wd():
+    """
+        Get user's Material's file path
+        :return: returns a String
+        """
     wd = input('Input your Material file path:')
     return wd
+
 def get_buffer(point):
     """
     Takes a point as an input and returns a 5km bufferzone around it
