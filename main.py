@@ -56,19 +56,15 @@ def get_buffer(point):
     """
     if 430000 <= point.x <= 465000 and 80000 <= point.y <= 95000:
         buffer_zone = point.buffer(5000)  # Make a new function for this buffer task
-        # xp, yp = buffer_zone.exterior.xy
-        # plt.fill(xp, yp, facecolor='blue', alpha=0.5)
         return buffer_zone
     else:
         buffer_zone = point.buffer(5000)
         map_bounds = Polygon([(428825.0, 74465.0), (466875.0, 74465.0), (466875.0, 97470.0), (428825.0, 97470.0)])
         t6_buffer_zone = buffer_zone.intersection(map_bounds)
-        # xp, yp = t6_buffer_zone.exterior.xy
-        # plt.fill(xp, yp, facecolor='blue', alpha=0.5)
         return t6_buffer_zone
 
 
-def get_highest_point(buffer_study_area):
+def get_highest_point(dem, buffer_study_area):
     """
     Returns a tuple of highest elevation point as well as a dem masked inside buffer.
     :param buffer_study_area: a buffer raster
@@ -81,9 +77,6 @@ def get_highest_point(buffer_study_area):
     # y = indices_x_y[1][0] i.e y position in the array
     x_max_elev = buffer_study_area.bounds[0] + indices_x_y[2][0] * 5
     y_max_elev = buffer_study_area.bounds[3] - indices_x_y[1][0] * 5
-    # print(numpy.max(study_area[0]))
-    # plt.plot(x_max_elev, y_max_elev, 'ro')
-    # rasterio.plot.show(study_area[0], transform=study_area[1])
     return Point([x_max_elev, y_max_elev]), study_area
 
 
@@ -161,6 +154,7 @@ if __name__ == "__main__":
 
     main_map = rasterio.open(working_d + '/background/raster-50k_2724246.tif')
     dem = rasterio.open(working_d + '/elevation/sz.asc')
+    print(dem)
     island_shape_df = gpd.read_file(working_d + '/shape/isle_of_wight.shp')
     island_shape = island_shape_df['geometry'][0]
 
@@ -168,11 +162,9 @@ if __name__ == "__main__":
     study_buffer = get_buffer(user_point)
 
     # Task 2: Returns the point of highest elevation
-    highest_elev, study_area = get_highest_point(study_buffer)
-
-
-    # print(highest_elev)
-    # print(find_elevation_by_point(highest_elev, study_buffer))
+    highest_elev, study_area = get_highest_point(dem, study_buffer)
+    print(study_area)
+    print(find_elevation_by_point(highest_elev, study_buffer))
 
     # Task 3: Working with ITN and getting closest node to both points
     itn_json_path = os.path.join(working_d + '/itn/solent_itn.json')
@@ -207,17 +199,10 @@ if __name__ == "__main__":
     for i in road_links_inside_buffer:
         road_links_inside_buffer[i]['time taken'] = get_time_for_roadlink(road_links_inside_buffer[i], study_buffer)
 
-    print(closest_distance_user_point)
-    print(closest_distance_highest_elev)         # check the for loop for error
-
     # Getting the id of the closest node to user and highest point using the get_id_of_closest_node() function
     closest_node_id_user = get_id_of_closest_node(closest_distance_user_point, road_nodes_inside_buffer)
     closest_node_id_high_elev = get_id_of_closest_node(closest_distance_highest_elev, road_nodes_inside_buffer)
 
-    print(closest_node_id_user)
-    print(closest_node_id_high_elev)
-
-    # print(road_links_inside_buffer)
     for link in road_links_inside_buffer:
         itn_nodes.add_edge(road_links_inside_buffer[link]['start'], road_links_inside_buffer[link]['end'], fid=link, weight=road_links_inside_buffer[link]['time taken'])
         # compute all the road links between the nearest point to the user input coordinate
@@ -238,7 +223,7 @@ if __name__ == "__main__":
         first_node = node
     shortest_path_gpd = gpd.GeoDataFrame({'fid': links, 'geometry': geom})
 
-    # Plotting
+    # Task 5: Plotting
     # Following Code block was taken from Practical Section of Week 8 from Jupyter Notebook
     back_array_main_map = main_map.read(1)
     pallete_main_map = np.array(([value for key, value in main_map.colormap(1).items()]))
@@ -249,12 +234,16 @@ if __name__ == "__main__":
     fig = plt.figure(figsize=(3, 3), dpi=300)
     ax = fig.add_subplot(1, 1, 1, projection=crs.OSGB())
 
-    # plotting all objects
+    # plotting map
     ax.imshow(background_image, origin='upper', extent=extent, zorder=0)
+    # plotting dem mask inside the buffer
     rasterio.plot.show(study_area[0], transform=study_area[1], ax=ax, zorder=1, alpha=0.7, cmap='gist_earth')
+    # plotting user point and highest elevation
     ax.plot(user_point.x, user_point.y, 'ro', zorder=2, markersize=1, label='User Position')
     ax.plot(highest_elev.x, highest_elev.y, 'go', zorder=3, markersize=1, label='Highest Elevation')
+    # plotting shortest path
     shortest_path_gpd.plot(ax=ax, edgecolor='blue', linewidth=0.5, zorder=4, label='Quickest Evacuation Route')
+
     ax.set_extent(display_extent, crs=crs.OSGB())
 
     # # adding map elements
@@ -270,6 +259,7 @@ if __name__ == "__main__":
                 arrowprops=dict(facecolor='black', width=1, headwidth=3),
                 ha='center', va='center', fontsize=6,
                 xycoords=ax.transAxes)
-
+    im = ax.imshow(study_area[0][0])
+    plt.colorbar(im, ax=ax)
 
     plt.show()
