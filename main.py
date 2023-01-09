@@ -135,8 +135,8 @@ def get_time_for_roadlink(roadlink, buffer):
     :param buffer: Study Buffer
     :return: Minutes needed to travel as an int
     """
-    start_node_elevation = find_elevation_by_point(Point(roadlink['coords'][0]), buffer)
-    end_node_elevation = find_elevation_by_point(Point(roadlink['coords'][-1]), buffer)
+    start_node_elevation = find_elevation_by_point(Point(roadlink['coords'][0]), buffer) #Use the find_elevation_by_point() to get the elevation of the start node
+    end_node_elevation = find_elevation_by_point(Point(roadlink['coords'][-1]), buffer) #Use the find_elevation_by_point() to get the elevation of the start node
     elevation_change = end_node_elevation - start_node_elevation
     if elevation_change > 0:
         added_time = elevation_change // 10
@@ -163,8 +163,8 @@ if __name__ == "__main__":
 
     # Task 2: Returns the point of highest elevation
     highest_elev, study_area = get_highest_point(dem, study_buffer)
-    print(study_area)
-    print(find_elevation_by_point(highest_elev, study_buffer))
+    #print(study_area)
+    #print(find_elevation_by_point(highest_elev, study_buffer))
 
     # Task 3: Working with ITN and getting closest node to both points
     itn_json_path = os.path.join(working_d + '/itn/solent_itn.json')
@@ -195,6 +195,7 @@ if __name__ == "__main__":
     closest_distance_user_point = get_closest_node_point(user_point, all_node_points_inside_buffer)
     closest_distance_highest_elev = get_closest_node_point(highest_elev, all_node_points_inside_buffer)
 
+    # Task 4
     # Add a new value to the road_links_inside_buffer dictionary for time take to be used as weight
     for i in road_links_inside_buffer:
         road_links_inside_buffer[i]['time taken'] = get_time_for_roadlink(road_links_inside_buffer[i], study_buffer)
@@ -209,8 +210,9 @@ if __name__ == "__main__":
         # and the nearest point to the highest elevation point
 
     path = nx.dijkstra_path(itn_nodes, source=closest_node_id_user, target=closest_node_id_high_elev, weight='weight')
+
     # find the shortest road nodes
-    print(path)
+    # print(path)
 
     # Following Code Block was taken from Practical Section of Week 8 from Jupyter Notebook
     links = []
@@ -234,6 +236,7 @@ if __name__ == "__main__":
     fig = plt.figure(figsize=(3, 3), dpi=300)
     ax = fig.add_subplot(1, 1, 1, projection=crs.OSGB())
 
+    # Task 6
     # plotting map
     ax.imshow(background_image, origin='upper', extent=extent, zorder=0)
     # plotting dem mask inside the buffer
@@ -260,6 +263,6 @@ if __name__ == "__main__":
                 ha='center', va='center', fontsize=6,
                 xycoords=ax.transAxes)
     im = ax.imshow(study_area[0][0])
-    plt.colorbar(im, ax=ax)
+    plt.colorbar(im, ax=ax, shrink=0.8)
 
     plt.show()
