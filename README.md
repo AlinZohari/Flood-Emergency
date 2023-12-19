@@ -8,7 +8,9 @@
 ## Abstract
 The software is built as a flood emergency plan that assist user on the Isle of Wight.
 When the user enter their coordinate on the island, it will return to the user the position of the highest point within a 5 kilometer of radius from them.
-It shows which route to take that are the shortest and would give the time it would take for the user to walk from their position to the highest point. 
+It shows which route to take that are the shortest and would give the time it would take for the user to walk from their position to the highest point. <br>
+<br>
+![image](https://github.com/AlinZohari/Flood-Emergency/assets/89179323/c886d5b0-df65-4af0-bf72-ed173728ee40)
 
 ## Dependencies
 
