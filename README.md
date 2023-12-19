@@ -1,9 +1,9 @@
 # Flood Emergency Planning
 
 **Table of Content**
-1. [Abstract]
-2. [Dependencies]
-3. [Limitations]
+1. [Abstract](https://github.com/AlinZohari/Flood-Emergency?tab=readme-ov-file#abstract)
+2. [Dependencies](https://github.com/AlinZohari/Flood-Emergency?tab=readme-ov-file#dependencies)
+3. [Limitations](https://github.com/AlinZohari/Flood-Emergency?tab=readme-ov-file#limitations)
 
 ## Abstract
 The software is built as a flood emergency plan that assist user on the Isle of Wight.
